@@ -1,0 +1,691 @@
+<!-- Chosen Palette: Clean Neutrals & Subtle Blue/Green Accent (inspired by Oyster's corporate aesthetic) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India CTC & Take-Home Salary Estimator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Using Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px; /* Base height for desktop */
+            max-height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px; /* Slightly smaller height on mobile */
+            }
+        }
+        /* Custom styles for the tabs */
+        .tab-btn.active {
+            border-bottom-color: #3b82f6; /* blue-500 */
+            color: #2563eb; /* blue-600 */
+            border-width: 2px;
+        }
+        .tab-btn:not(.active) {
+            border-bottom-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans antialiased text-gray-800">
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- Header -->
+        <header class="text-center py-6 bg-white rounded-xl shadow-sm mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800">CTC & Take-Home Salary Analyzer (India)</h1>
+            <p class="text-lg text-gray-500 mt-2">A guide and calculator for understanding your Cost to Company breakdown and estimated net earnings.</p>
+        </header>
+
+        <!-- Main Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+            <!-- 1. Input Panel (Left Column) -->
+            <section id="input-panel" class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm h-fit sticky top-4">
+                <h2 class="text-xl font-bold mb-4 border-b pb-2 text-gray-700">Your Salary Inputs</h2>
+                <p class="text-sm text-gray-500 mb-6">Enter your annual gross salary and select your Provident Fund (PF) contribution preference to see the full breakdown.</p>
+
+                <!-- Gross Salary Input -->
+                <div class="mb-5">
+                    <label for="annual-gross" class="block text-sm font-medium text-gray-700 mb-1">Annual Gross Salary in ₹</label>
+                    <input type="number" id="annual-gross" value="750000" min="10000" step="10000" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-lg">
+                </div>
+
+                <!-- PF Option Selector -->
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Provident Fund (PF) Contribution Option</label>
+                    <fieldset class="space-y-3">
+                        <div class="flex items-center">
+                            <input id="pf-12-percent" name="pf-option" type="radio" value="12%" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                            <label for="pf-12-percent" class="ml-3 block text-base font-medium text-gray-700">12% of Basic Salary</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="pf-1800-fixed" name="pf-option" type="radio" value="1800" checked class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                            <label for="pf-1800-fixed" class="ml-3 block text-base font-medium text-gray-700">Fixed ₹1,800 per month</label>
+                        </div>
+                    </fieldset>
+                    <p class="text-xs text-gray-400 mt-2">This choice determines the Employer PF component, which affects the calculated Total CTC.</p>
+                </div>
+
+                <button id="calculate-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-150 shadow-sm hover:shadow-md mb-4">
+                    Calculate Breakdown
+                </button>
+                
+                <!-- Updated Download Button -->
+                <button id="download-btn" class="w-full border border-blue-600 bg-white hover:bg-blue-50 text-blue-600 font-semibold py-3 rounded-lg transition duration-150 shadow-sm hover:shadow-md">
+                    Download Breakdown (Text)
+                </button>
+            </section>
+
+            <!-- 2. Results & Breakdown Panel (Right Columns) -->
+            <div class="lg:col-span-3">
+
+                <!-- Summary Panel (Center Top) -->
+                <section id="summary-panel" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-b-2 border-gray-200">
+                        <p class="text-sm font-medium text-gray-500">Total Annual CTC</p>
+                        <p id="summary-ctc" class="text-3xl font-extrabold mt-1 text-gray-900">₹0</p>
+                        <p class="text-sm text-gray-400 mt-1">Total cost incurred by the company.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-b-2 border-gray-200">
+                        <p class="text-sm font-medium text-gray-500">Annual Gross Salary</p>
+                        <p id="summary-gross" class="text-3xl font-extrabold mt-1 text-gray-900">₹0</p>
+                        <p class="text-sm text-gray-400 mt-1">Salary before employee deductions.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-b-2 border-green-500">
+                        <p class="text-sm font-medium text-gray-500">Estimated Monthly Take Home</p>
+                        <p id="summary-net-monthly" class="text-3xl font-extrabold mt-1 text-green-700">₹0</p>
+                        <p class="text-sm text-gray-400 mt-1">Net income after all fixed deductions (pre-tax).</p>
+                    </div>
+                </section>
+
+                <!-- Interactive Breakdown Panel (Center Bottom/Right) -->
+                <section id="breakdown-panel" class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-xl font-bold mb-4 text-gray-700">Interactive Breakdown and Analysis</h2>
+                    <p class="text-base text-gray-500 mb-6">Explore the full composition of your package through the following interactive sections. This shows exactly how each component contributes to your total CTC and how deductions impact your net take-home pay.</p>
+
+                    <!-- Tabs for Navigation -->
+                    <div class="flex border-b mb-6">
+                        <button onclick="showTab('earnings')" class="tab-btn py-2 px-4 text-sm font-medium rounded-t-lg transition duration-150 ease-in-out border-b-2 border-blue-500 text-blue-600 active">Earning Components</button>
+                        <button onclick="showTab('deductions')" class="tab-btn py-2 px-4 text-sm font-medium rounded-t-lg transition duration-150 ease-in-out border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Deductions & Net Pay</button>
+                        <button onclick="showTab('structure')" class="tab-btn py-2 px-4 text-sm font-medium rounded-t-lg transition duration-150 ease-in-out border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Full Annual Structure</button>
+                    </div>
+
+                    <!-- Tab Content - Earning Components -->
+                    <div id="tab-earnings" class="tab-content grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 text-gray-700">CTC Composition (Annual View)</h3>
+                            <p class="text-sm text-gray-500 mb-4">This donut chart visualizes the proportional split of your CTC into its core components: Basic Salary, HRA, and the flexible Special Allowance component which adjusts based on your PF choice.</p>
+                            <div class="chart-container">
+                                <canvas id="earnings-chart"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 text-gray-700">Component Details</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-gray-50 rounded-lg">
+                                    <p class="font-semibold text-gray-800">Basic Salary (50% of CTC)</p>
+                                    <p id="detail-basic-annual" class="text-2xl font-bold text-gray-700 mt-1">₹0</p>
+                                    <p class="text-xs text-gray-500">The core salary component, fixed at 50% of your total CTC. Many other allowances are pegged to this amount.</p>
+                                </div>
+                                <div class="p-4 bg-gray-50 rounded-lg">
+                                    <p class="font-semibold text-gray-800">House Rent Allowance (HRA)</p>
+                                    <p id="detail-hra-annual" class="text-2xl font-bold text-gray-700 mt-1">₹0</p>
+                                    <p class="text-xs text-gray-500">Calculated as 40% of the Basic Salary. This component is generally tax-exempt up to a certain limit.</p>
+                                </div>
+                                <div class="p-4 bg-gray-50 rounded-lg">
+                                    <p class="font-semibold text-gray-800">Special Allowance (Balancing Component)</p>
+                                    <p id="detail-special-annual" class="text-2xl font-bold text-gray-700 mt-1">₹0</p>
+                                    <p class="text-xs text-gray-500">This amount is automatically adjusted to ensure your total Gross Salary matches the input value.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content - Deductions & Net Pay -->
+                    <div id="tab-deductions" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <h3 class="text-lg font-semibold mb-3 text-gray-700">Deduction Impact on Gross Salary</h3>
+                            <p class="text-sm text-gray-500 mb-4">This bar chart compares the annual values of the fixed statutory and mandatory deductions taken from your gross salary. <span class="font-bold text-red-500">Income Tax is NOT included in this estimate.</span></p>
+                            <div class="chart-container">
+                                <canvas id="deductions-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-1">
+                            <h3 class="text-lg font-semibold mb-3 text-gray-700">Deduction Details</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-gray-50 rounded-lg">
+                                    <p class="font-semibold text-gray-800">Employee PF Contribution</p>
+                                    <p id="detail-employee-pf" class="text-xl font-bold text-red-600 mt-1">₹0</p>
+                                    <p class="text-xs text-gray-500">Your selected annual contribution amount (either 12% of Basic or fixed ₹1800/month).</p>
+                                </div>
+                                <div class="p-4 bg-gray-50 rounded-lg">
+                                    <p class="font-semibold text-gray-800">Professional Tax (Fixed)</p>
+                                    <p class="text-xl font-bold text-red-600 mt-1">₹2,400</p>
+                                    <p class="text-xs text-gray-500">A fixed state-specific deduction (used example: Karnataka).</p>
+                                </div>
+                                <div class="p-4 bg-red-50 rounded-lg">
+                                    <p class="font-semibold text-gray-800">Total Annual Deduction (Pre-Tax)</p>
+                                    <p id="detail-total-deductions" class="text-3xl font-extrabold text-red-700 mt-1">₹0</p>
+                                    <p class="text-xs text-gray-600">The total amount deducted from your Gross Salary to reach the Estimated Net Take Home.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content - Full Annual Structure -->
+                    <div id="tab-structure" class="tab-content hidden">
+                        <h3 class="text-lg font-semibold mb-3 text-gray-700">Full Annual & Monthly Salary Structure</h3>
+                        <p class="text-sm text-gray-500 mb-4">This table provides a comprehensive view of all annual and monthly figures used in the calculation, broken down by Earning, Employer Contribution, and Deduction.</p>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 shadow-sm rounded-lg">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Component</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Annual Amount (₹)</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Monthly Amount (₹)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="structure-table-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- Rows populated by JS -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-gray-50">
+                                        <td class="px-6 py-3 font-bold text-sm text-gray-900">Estimated Monthly Take Home (Pre-Tax)</td>
+                                        <td id="table-footer-annual" class="px-6 py-3 font-bold text-sm text-right text-green-700"></td>
+                                        <td id="table-footer-monthly" class="px-6 py-3 font-bold text-sm text-right text-green-700"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+            </div>
+        </div>
+
+        <!-- Footnote -->
+        <footer class="text-center py-6 mt-8 text-sm text-gray-500">
+            <p>
+                ⚠️ **Disclaimer:** This is an *estimate* based on the company's internal payroll rules (Basic 50% of CTC, HRA 40% of Basic, PF rules, fixed Professional Tax). It does **NOT** include Income Tax, Gratuity, Performance Bonus, or any variable components. Consult an HR/Finance representative for official figures.
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        const ANNUAL_GROSS_FIELD = document.getElementById('annual-gross');
+        const PF_OPTIONS = document.getElementsByName('pf-option');
+        const CALC_BTN = document.getElementById('calculate-btn');
+        const DOWNLOAD_BTN = document.getElementById('download-btn');
+
+        const MONTHLY_DIVISOR = 12;
+        const PROF_TAX_ANNUAL = 2400; // Example fixed professional tax
+        const INCOME_TAX_ANNUAL = 0; // Income tax is complex, set to 0 for a net estimate
+        let currentResults = null;
+
+        let earningsChart = null;
+        let deductionsChart = null;
+
+        /**
+         * Formats a number using the International numbering system (e.g., 1,000,000).
+         * @param {number} amount The number to format.
+         * @returns {string} The formatted string.
+         */
+        function formatCurrency(amount) {
+             // Use Math.round to ensure no decimal places before formatting for display
+             // Using 'en-US' (International format) as per previous request.
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(amount));
+        }
+
+        /**
+         * Formats a number with the rupee symbol (e.g., ₹1,000,000).
+         * @param {number} amount The number to format.
+         * @returns {string} The formatted string with symbol.
+         */
+        function formatCurrencyWithSymbol(amount) {
+            if (isNaN(amount) || amount === null) return '₹0';
+            return `₹${formatCurrency(amount)}`;
+        }
+
+        /**
+         * Main calculation logic for CTC and component breakdown.
+         * The rounding logic is crucial and now applied iteratively to match common payroll software/spreadsheet methods.
+         * @param {string} annualGrossInput - The annual gross salary entered by the user.
+         * @param {string} pfOption - The PF calculation rule ('12%' or '1800').
+         * @returns {object|null} An object containing all calculated components, or null if input is invalid.
+         */
+        function calculateCTC(annualGrossInput, pfOption) {
+            const annualGross = parseFloat(annualGrossInput);
+            
+            if (isNaN(annualGross) || annualGross <= 0) {
+                // Return default zero values to prevent chart/UI errors on initial load or invalid input
+                return {
+                    ctc: 0, basicSalary: 0, hra: 0, employerPfContribution: 0, specialAllowance: 0, 
+                    grossSalaryAnnual: 0, employeePfDeduction: 0, 
+                    totalDeductionAnnual: 0, totalNetTakeHomeAnnual: 0, totalNetTakeHomeMonthly: 0, pfOption
+                };
+            }
+            
+            // --- 1. DERIVE CTC (Initial float calculation) ---
+            let ctc_float = 0;
+            const fixedPfAnnual = 1800 * MONTHLY_DIVISOR; // 21600
+
+            if (pfOption === '12%') {
+                // Gross = CTC * 0.94 -> CTC = Gross / 0.94
+                ctc_float = annualGross / 0.94;
+            } else if (pfOption === '1800') {
+                // CTC = Gross + Fixed Employer PF
+                ctc_float = annualGross + fixedPfAnnual;
+            }
+
+            // --- 2. ITERATIVE ROUNDING APPLIED HERE TO MATCH SPREADSHEET LOGIC ---
+            
+            // 2. Round CTC
+            const ctc = Math.round(ctc_float);
+            
+            // 3. Calculate and Round Basic Salary (50% of CTC)
+            const basicSalary = Math.round(ctc * 0.50);
+            
+            // 4. Calculate and Round HRA (40% of Basic)
+            const hra = Math.round(basicSalary * 0.40);
+
+            // 5. Calculate Employee PF Deduction (CRUCIAL FIX HERE)
+            let employeePfDeduction;
+            if (pfOption === '12%') {
+                // 12% of Basic, subject to rounding (Standard Rule)
+                employeePfDeduction = Math.round(basicSalary * 0.12);
+            } else {
+                // Fixed PF is 1800 per month (21600 per year) - Capped
+                employeePfDeduction = fixedPfAnnual; 
+            }
+            
+            // 6. Calculate Employer PF Contribution (CRUCIAL FIX HERE)
+            let employerPfContribution;
+            if (pfOption === '12%') {
+                // Matches Employee PF contribution
+                employerPfContribution = employeePfDeduction;
+            } else {
+                // Fixed PF is 1800 per month (21600 per year)
+                employerPfContribution = fixedPfAnnual;
+            }
+
+
+            // 7. Special Allowance (Balancing Figure: Gross - Basic - HRA)
+            const sumOfDirectComponents = basicSalary + hra;
+            // The Special Allowance balances the components to exactly meet the input Gross Salary.
+            const specialAllowance = annualGross - sumOfDirectComponents;
+
+            // 8. Total Deductions
+            const totalDeductionAnnual = employeePfDeduction + PROF_TAX_ANNUAL + INCOME_TAX_ANNUAL;
+
+            // 9. Net Take Home
+            const totalNetTakeHomeAnnual = annualGross - totalDeductionAnnual;
+            const totalNetTakeHomeMonthly = totalNetTakeHomeAnnual / MONTHLY_DIVISOR;
+            
+            // Final return object uses the iteratively rounded values
+            return {
+                ctc: ctc,
+                basicSalary: basicSalary,
+                hra: hra,
+                employerPfContribution: employerPfContribution,
+                specialAllowance: specialAllowance,
+                grossSalaryAnnual: annualGross, 
+                employeePfDeduction: employeePfDeduction,
+                totalDeductionAnnual: totalDeductionAnnual,
+                totalNetTakeHomeAnnual: totalNetTakeHomeAnnual,
+                totalNetTakeHomeMonthly: Math.round(totalNetTakeHomeMonthly),
+                pfOption
+            };
+        }
+
+        function updateUI(results) {
+            currentResults = results; // Store results globally for download function
+            
+            // Check for valid results before updating
+            if (results.grossSalaryAnnual === 0) {
+                 // Resetting chart to blank state might be necessary if it was initialized with bad data
+                if (earningsChart) earningsChart.destroy();
+                if (deductionsChart) deductionsChart.destroy();
+                earningsChart = null;
+                deductionsChart = null;
+                // Update summary with zero/default values
+                document.getElementById('summary-ctc').textContent = '₹0';
+                document.getElementById('summary-gross').textContent = '₹0';
+                document.getElementById('summary-net-monthly').textContent = '₹0';
+                document.getElementById('structure-table-body').innerHTML = '';
+                document.getElementById('detail-total-deductions').textContent = '₹0';
+                document.getElementById('table-footer-annual').textContent = '₹0';
+                document.getElementById('table-footer-monthly').textContent = '₹0';
+                return;
+            }
+
+            // Update Summary Panel
+            document.getElementById('summary-ctc').textContent = formatCurrencyWithSymbol(results.ctc);
+            document.getElementById('summary-gross').textContent = formatCurrencyWithSymbol(results.grossSalaryAnnual);
+            document.getElementById('summary-net-monthly').textContent = formatCurrencyWithSymbol(results.totalNetTakeHomeMonthly);
+
+            // Update Earning Details
+            document.getElementById('detail-basic-annual').textContent = formatCurrencyWithSymbol(results.basicSalary);
+            document.getElementById('detail-hra-annual').textContent = formatCurrencyWithSymbol(results.hra);
+            document.getElementById('detail-special-annual').textContent = formatCurrencyWithSymbol(results.specialAllowance);
+
+            // Update Deduction Details
+            document.getElementById('detail-employee-pf').textContent = formatCurrencyWithSymbol(results.employeePfDeduction);
+            document.getElementById('detail-total-deductions').textContent = formatCurrencyWithSymbol(results.totalDeductionAnnual);
+
+            // Update Charts
+            updateEarningsChart(results);
+            updateDeductionsChart(results);
+
+            // Update Full Structure Table
+            updateStructureTable(results);
+        }
+
+        function updateStructureTable(results) {
+            const tableBody = document.getElementById('structure-table-body');
+            tableBody.innerHTML = '';
+            
+            const components = [
+                { name: 'Basic Salary (50% of CTC)', annual: results.basicSalary, type: 'earning' },
+                { name: 'House Rent Allowance (HRA)', annual: results.hra, type: 'earning' },
+                { name: 'Special Allowance (Balancing)', annual: results.specialAllowance, type: 'earning' },
+                { name: 'Gross Salary (Annual)', annual: results.grossSalaryAnnual, type: 'subtotal' },
+                { name: 'Employer PF Contribution', annual: results.employerPfContribution, type: 'cost' },
+                { name: 'Total Annual CTC', annual: results.ctc, type: 'total' },
+                { name: '--- DEDUCTIONS ---', annual: NaN, type: 'header' },
+                { name: 'Employee PF Contribution', annual: results.employeePfDeduction, type: 'deduction' },
+                { name: 'Professional Tax (Fixed)', annual: PROF_TAX_ANNUAL, type: 'deduction' },
+                { name: 'Income Tax (Estimated as ₹0)', annual: INCOME_TAX_ANNUAL, type: 'deduction' },
+                { name: 'Total Annual Deductions', annual: results.totalDeductionAnnual, type: 'subtotal-deduction' },
+            ];
+
+            components.forEach(comp => {
+                if (comp.type === 'header') {
+                    const row = `<tr class="bg-gray-200"><td colspan="3" class="px-6 py-2 text-center text-xs font-semibold uppercase text-gray-700">${comp.name}</td></tr>`;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                    return;
+                }
+                
+                const annualFormatted = isNaN(comp.annual) ? '-' : formatCurrencyWithSymbol(comp.annual);
+                const monthly = isNaN(comp.annual) ? NaN : comp.annual / MONTHLY_DIVISOR;
+                const monthlyFormatted = isNaN(monthly) ? '-' : formatCurrencyWithSymbol(monthly);
+                
+                let rowClass = 'text-gray-700';
+                let annualStyle = 'text-right';
+                let monthlyStyle = 'text-right';
+
+                if (comp.type === 'subtotal') rowClass = 'bg-blue-50 font-semibold text-blue-800';
+                if (comp.type === 'total') rowClass = 'bg-gray-100 font-bold text-gray-800';
+                if (comp.type === 'subtotal-deduction') rowClass = 'bg-red-50 font-semibold text-red-800';
+
+                const row = `
+                    <tr class="${rowClass}">
+                        <td class="px-6 py-3 whitespace-nowrap text-sm font-medium">${comp.name}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm ${annualStyle}">${annualFormatted}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-sm ${monthlyStyle}">${monthlyFormatted}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+
+            document.getElementById('table-footer-annual').textContent = formatCurrencyWithSymbol(results.totalNetTakeHomeAnnual);
+            document.getElementById('table-footer-monthly').textContent = formatCurrencyWithSymbol(results.totalNetTakeHomeMonthly);
+        }
+
+        function updateEarningsChart(results) {
+            const data = {
+                labels: ['Basic Salary', 'House Rent Allowance (HRA)', 'Special Allowance', 'Employer PF Contribution'],
+                datasets: [{
+                    // Chart.js requires raw numbers
+                    data: [results.basicSalary, results.hra, results.specialAllowance, results.employerPfContribution],
+                    backgroundColor: ['#4299E1', '#63B3ED', '#90CDF4', '#A0AEC0'], 
+                    hoverOffset: 4
+                }]
+            };
+
+            const config = {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'right' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    if (label) {
+                                        let value = context.parsed;
+                                        let percentage = (value / results.ctc * 100);
+                                        // Ensure percentage is only displayed if CTC is non-zero and valid
+                                        const percentageText = (results.ctc > 0 && isFinite(percentage)) ? ` (${percentage.toFixed(1)}%)` : '';
+                                        return `${label}: ${formatCurrencyWithSymbol(value)}${percentageText}`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            if (earningsChart) {
+                earningsChart.data = data;
+                earningsChart.update();
+            } else {
+                earningsChart = new Chart(document.getElementById('earnings-chart'), config);
+            }
+        }
+
+        function updateDeductionsChart(results) {
+            const data = {
+                labels: ['Employee PF Contribution', 'Professional Tax (Fixed)'],
+                datasets: [{
+                    label: 'Annual Deduction Amount',
+                    data: [results.employeePfDeduction, PROF_TAX_ANNUAL],
+                    backgroundColor: ['#EF4444', '#FCD34D'],
+                    borderColor: '#fff',
+                    borderWidth: 1
+                }]
+            };
+
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Amount in ₹' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += formatCurrencyWithSymbol(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            if (deductionsChart) {
+                deductionsChart.data = data;
+                deductionsChart.update();
+            } else {
+                deductionsChart = new Chart(document.getElementById('deductions-chart'), config);
+            }
+        }
+
+        // --- TEXT DOWNLOAD FUNCTIONALITY ---
+
+        function generateBreakdownText(results) {
+            if (!results) return "Error: No calculation data available.";
+
+            const pfText = results.pfOption === '12%' 
+                ? '12% of Basic Salary' 
+                : 'Fixed ₹1,800 per month';
+
+            // Re-formatting with currency symbol for the text output
+            const ctcF = formatCurrencyWithSymbol(results.ctc);
+            const grossAnnualF = formatCurrencyWithSymbol(results.grossSalaryAnnual);
+            const netAnnualF = formatCurrencyWithSymbol(results.totalNetTakeHomeAnnual);
+            const netMonthlyF = formatCurrencyWithSymbol(results.totalNetTakeHomeMonthly);
+
+            const basicF = formatCurrencyWithSymbol(results.basicSalary);
+            const hraF = formatCurrencyWithSymbol(results.hra);
+            const specialF = formatCurrencyWithSymbol(results.specialAllowance);
+            const employerPfF = formatCurrencyWithSymbol(results.employerPfContribution);
+            const employeePfF = formatCurrencyWithSymbol(results.employeePfDeduction);
+            const profTaxF = formatCurrencyWithSymbol(PROF_TAX_ANNUAL);
+            const incomeTaxF = formatCurrencyWithSymbol(INCOME_TAX_ANNUAL);
+            const totalDeductionF = formatCurrencyWithSymbol(results.totalDeductionAnnual);
+            
+            let text = `
+==================================================
+INDIA CTC & TAKE-HOME SALARY ESTIMATE
+==================================================
+
+Date Generated: ${new Date().toLocaleDateString()}
+Annual Gross Salary Input: ${grossAnnualF}
+PF Option Chosen: ${pfText}
+
+--------------------------------------------------
+SUMMARY
+--------------------------------------------------
+Total Annual CTC:             ${ctcF}
+Annual Gross Salary (Pre-Deduction): ${grossAnnualF}
+Estimated Annual Net Take Home (Pre-Tax): ${netAnnualF}
+Estimated Monthly Net Take Home (Pre-Tax): ${netMonthlyF}
+
+--------------------------------------------------
+ANNUAL STRUCTURE BREAKDOWN
+--------------------------------------------------
+[EARNING COMPONENTS]
+Basic Salary (50% of CTC):    ${basicF}
+House Rent Allowance (HRA):   ${hraF}
+Special Allowance (Balancing):${specialF}
+
+[EMPLOYER CONTRIBUTION (Part of CTC)]
+Employer PF Contribution:     ${employerPfF}
+
+[GROSS SALARY]
+Total Gross Salary (Annual):  ${grossAnnualF}
+
+--------------------------------------------------
+FIXED ANNUAL DEDUCTIONS (Pre-Tax)
+--------------------------------------------------
+Employee PF Contribution:     ${employeePfF}
+Professional Tax (Example Karnataka): ${profTaxF}
+Income Tax (Estimated as ₹0): ${incomeTaxF}
+--------------------------------------------------
+Total Fixed Annual Deductions:${totalDeductionF}
+
+==================================================
+DISCLAIMER:
+This is an estimate based on the company's rules (Basic 50%, HRA 40% of Basic, etc.).
+It does NOT include Income Tax, Gratuity, Performance Bonus, or any variable components.
+Consult an HR/Finance representative for official figures.
+==================================================
+            `.trim();
+            return text;
+        }
+
+        function handleDownload() {
+            if (!currentResults || currentResults.grossSalaryAnnual === 0) {
+                // Use a simple alert-like console message since confirm/alert are forbidden
+                console.error('Cannot download: Please enter a valid Annual Gross Salary first.');
+                return;
+            }
+            
+            const textContent = generateBreakdownText(currentResults);
+            
+            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CTC_Breakdown_${currentResults.grossSalaryAnnual}_${new Date().toISOString().slice(0, 10)}.txt`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // --- END TEXT DOWNLOAD FUNCTIONALITY ---
+
+        function handleCalculation() {
+            const annualGrossInput = ANNUAL_GROSS_FIELD.value;
+            let pfOption = '';
+            for (const radio of PF_OPTIONS) {
+                if (radio.checked) {
+                    pfOption = radio.value;
+                    break;
+                }
+            }
+
+            if (!annualGrossInput || parseFloat(annualGrossInput) <= 0) {
+                ANNUAL_GROSS_FIELD.classList.add('border-red-500');
+                // Trigger updateUI with zero results to clear the screen
+                updateUI(calculateCTC(0, pfOption)); 
+                return;
+            }
+            ANNUAL_GROSS_FIELD.classList.remove('border-red-500');
+
+            const results = calculateCTC(annualGrossInput, pfOption);
+            updateUI(results);
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Update tab buttons visually
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.querySelector(`.tab-btn[onclick*="${tabId}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+        }
+
+        // Initial setup and event listeners
+        CALC_BTN.addEventListener('click', handleCalculation);
+        DOWNLOAD_BTN.addEventListener('click', handleDownload);
+        PF_OPTIONS.forEach(radio => radio.addEventListener('change', handleCalculation));
+        ANNUAL_GROSS_FIELD.addEventListener('input', handleCalculation);
+
+        // Run initial calculation on load
+        window.onload = function() {
+            handleCalculation(); // Performs initial calculation and updateUI
+            showTab('earnings'); // Sets the first tab as active
+        };
+    </script>
+</body>
+</html>
