@@ -186,12 +186,12 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Annual Gross Salary Input -->
             <div class="input-group">
-                <!-- FIX 1: Removed (₹) from the label -->
+                <!-- FIX: Removed (₹) from the label -->
                 <label for="grossSalary">Annual Gross Salary</label> 
                 <div class="relative">
-                    <!-- FIX 2: Icon repositioned slightly left (left-3) and centered -->
+                    <!-- FIX: Icon positioned left-3 -->
                     <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 0s1 4 5 4m-5 4h6m-1 3.5l1-1.5m-3-1l-1-1.5m3-1l1-1.5m-3-1l-1-1.5m2-2l-1-1.5m2 2V5m-4 14v-4m-3-1h8m-8-2h8m-8-2h8"></path></svg>
-                    <!-- FIX 3: Increased padding to pl-12 (48px) for clear separation -->
+                    <!-- FIX: Increased padding to pl-12 (48px) for clear separation -->
                     <input type="number" id="grossSalary" placeholder="0" min="0" class="input-with-icon pl-12 pr-3" oninput="calculateCTC()">
                 </div>
             </div>
@@ -209,9 +209,9 @@
             <div class="input-group">
                 <label>Employer PF Contribution</label>
                 <div class="relative">
-                    <!-- FIX 4: Icon in PF field is now visually aligned with input text padding -->
+                    <!-- FIX: Icon positioned left-3 -->
                     <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 1.343 3 3s-1.343 3-3 3 1.343-3 3-3zM10 20v-5m4 0v5m-4-7h4m-4 0v-4m4 4h4m-4-4v4"></path></svg>
-                    <!-- FIX 5: Increased padding to pl-12 (48px) for clear separation -->
+                    <!-- FIX: Increased padding to pl-12 (48px) for clear separation -->
                     <select id="pfOption" class="input-with-icon pl-12 pr-3" onchange="calculateCTC()">
                         <option value="percentage">12% of Basic Salary</option>
                         <option value="fixed">INR 1,800 per month (₹21,600 annual)</option>
@@ -249,7 +249,10 @@
 
     <!-- C) RESULTS TABLE CONTAINER -->
     <div id="results-container" class="result-table-card">
-        <table id="ctc-table" class="result-table w-full border-collapse">
+        
+        <!-- Conditional Table Rendering: New Regime vs. Old Regime -->
+        <table id="ctc-table-new" class="result-table w-full border-collapse" style="display: none;">
+             <!-- NEW REGIME TABLE (SIMPLE STRUCTURE) -->
             <thead>
                 <tr>
                     <th class="w-1/2">Description</th>
@@ -259,66 +262,168 @@
             </thead>
             <tbody>
                 
-                <!-- D) Section 1: Direct Benefits (Fixed CTC Components) -->
+                <!-- Section 1: Direct Benefits (Fixed CTC Components) -->
+                <tr class="section-header-band">
+                    <th colspan="3">I. Direct Benefits (Fixed CTC Components)</th>
+                </tr>
+                <tr>
+                    <th>Basic Salary (50% on CTC)</th>
+                    <td id="basicAnnualNew">—</td>
+                    <td id="basicMonthlyNew">—</td>
+                </tr>
+                <tr>
+                    <th>HRA (40% on Basic)</th>
+                    <td id="hraAnnualNew">—</td>
+                    <td id="hraMonthlyNew">—</td>
+                </tr>
+                <tr>
+                    <th>Special Allowance</th>
+                    <td id="specialAllowanceAnnualNew">—</td>
+                    <td id="specialAllowanceMonthlyNew">—</td>
+                </tr>
+                
+                <!-- Subtotal: FIXED CTC (Blue) -->
+                <tr class="subtotal-bar subtotal-bar-blue">
+                    <th>FIXED CTC</th>
+                    <td id="fixedCTCAnnualNew">—</td>
+                    <td id="fixedCTCMonthlyNew">—</td>
+                </tr>
+
+                <!-- Section 2: Employer Savings (PF) -->
+                <tr class="section-header-band">
+                    <th colspan="3">II. Employer Savings (PF)</th>
+                </tr>
+                <tr>
+                    <th>Employer PF Contribution (<span id="pfRateDisplayNew">12% of Basic Salary</span>)</th>
+                    <td id="employerPFAnnualNew">—</td>
+                    <td id="employerPFMonthlyNew">—</td>
+                </tr>
+
+                <!-- Section 3: Cost to Company (Total CTC) -->
+                <tr class="section-header-band">
+                    <th colspan="3">III. Cost to Company (Total CTC)</th>
+                </tr>
+                <!-- Subtotal: TOTAL CTC (Blue) -->
+                <tr class="subtotal-bar subtotal-bar-blue">
+                    <th>TOTAL CTC</th>
+                    <td id="annualCTCNew">—</td>
+                    <td id="monthlyCTCNew">—</td>
+                </tr>
+                
+                <!-- Section 4: Employee Deductions -->
+                <tr class="section-header-band">
+                    <th colspan="3">IV. Employee Deductions</th>
+                </tr>
+                
+                <!-- Deductions -->
+                <tr>
+                    <th>Employee PF Contribution</th>
+                    <td id="employeePFAnnualNew">—</td>
+                    <td id="employeePFMonthlyNew">—</td>
+                </tr>
+                <tr>
+                    <th>Professional Tax</th>
+                    <td id="ptAnnualNew">—</td>
+                    <td id="ptMonthlyNew">—</td>
+                </tr>
+                <!-- E) Subtotal: Income Tax Estimate (Orange) -->
+                <tr class="subtotal-bar subtotal-bar-tax">
+                    <th>Income Tax (<span id="regimeDisplayNew">New Regime (Slab Tax)</span>)</th>
+                    <td id="incomeTaxAnnualNew">—</td>
+                    <td id="incomeTaxMonthlyNew">—</td>
+                </tr>
+                
+                <!-- E) Subtotal: TOTAL DEDUCTION (Purple) -->
+                <tr class="subtotal-bar subtotal-bar-deduction">
+                    <th>TOTAL DEDUCTION</th>
+                    <td id="totalDeductionAnnualNew">—</td>
+                    <td id="totalDeductionMonthlyNew">—</td>
+                </tr>
+                
+                <!-- D) Section 5: Net Take Home (Final) -->
+                <tr class="section-header-band">
+                    <th colspan="3">V. Net Take Home (Final)</th>
+                </tr>
+                <!-- E) Final Take Home (Green 3) -->
+                <tr class="subtotal-bar subtotal-bar-net">
+                    <th>TOTAL NET TAKE HOME (ESTIMATE)</th>
+                    <td id="netTakeHomeAnnualNew">—</td>
+                    <td id="netTakeHomeMonthlyNew">—</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- OLD REGIME TABLE (EXPANDED STRUCTURE - Default current structure) -->
+        <table id="ctc-table-old" class="result-table w-full border-collapse" style="display: none;">
+            <thead>
+                <tr>
+                    <th class="w-1/2">Description</th>
+                    <th class="w-1/4">Annual (₹)</th>
+                    <th class="w-1/4">Monthly (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <!-- Section 1: Direct Benefits (Fixed CTC Components) -->
                 <tr class="section-header-band">
                     <th colspan="3">I. Direct Benefits (Fixed CTC Components)</th>
                 </tr>
                 <tr>
                     <th>Basic Salary (50% of CTC)</th>
-                    <td id="basicAnnual">—</td>
-                    <td id="basicMonthly">—</td>
+                    <td id="basicAnnualOld">—</td>
+                    <td id="basicMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>House Rent Allowance (HRA) (40% of Basic)</th>
-                    <td id="hraAnnual">—</td>
-                    <td id="hraMonthly">—</td>
+                    <td id="hraAnnualOld">—</td>
+                    <td id="hraMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>Leave Travel Allowance (LTA) (1 Month Basic)</th>
-                    <td id="ltaAnnual">—</td>
-                    <td id="ltaMonthly">—</td>
+                    <td id="ltaAnnualOld">—</td>
+                    <td id="ltaMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>Children Education Allowance (CEA)</th>
-                    <td id="ceaAnnual">—</td>
-                    <td id="ceaMonthly">—</td>
+                    <td id="ceaAnnualOld">—</td>
+                    <td id="ceaMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>Telephone/Internet Allowance</th>
-                    <td id="telephoneAnnual">—</td>
-                    <td id="telephoneMonthly">—</td>
+                    <td id="telephoneAnnualOld">—</td>
+                    <td id="telephoneMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>Meal/Sodexo Coupons</th>
-                    <td id="sodexoAnnual">—</td>
-                    <td id="sodexoMonthly">—</td>
+                    <td id="sodexoAnnualOld">—</td>
+                    <td id="sodexoMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>Car Repair & Maintenance</th>
-                    <td id="carRepairAnnual">—</td>
-                    <td id="carRepairMonthly">—</td>
+                    <td id="carRepairAnnualOld">—</td>
+                    <td id="carRepairMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>Professional Development</th>
-                    <td id="profDevAnnual">—</td>
-                    <td id="profDevMonthly">—</td>
+                    <td id="profDevAnnualOld">—</td>
+                    <td id="profDevMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>Books & Periodicals</th>
-                    <td id="booksAnnual">—</td>
-                    <td id="booksMonthly">—</td>
+                    <td id="booksAnnualOld">—</td>
+                    <td id="booksMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>Special Allowance (Balancing Figure)</th>
-                    <td id="specialAllowanceAnnual">—</td>
-                    <td id="specialAllowanceMonthly">—</td>
+                    <td id="specialAllowanceAnnualOld">—</td>
+                    <td id="specialAllowanceMonthlyOld">—</td>
                 </tr>
                 
                 <!-- E) Subtotal: FIXED CTC (Blue) -->
                 <tr class="subtotal-bar subtotal-bar-blue">
                     <th>FIXED CTC (Annual Gross Salary)</th>
-                    <td id="fixedCTCAnnual">—</td>
-                    <td id="fixedCTCMonthly">—</td>
+                    <td id="fixedCTCAnnualOld">—</td>
+                    <td id="fixedCTCMonthlyOld">—</td>
                 </tr>
 
                 <!-- D) Section 2: Employer Savings (PF) -->
@@ -326,9 +431,9 @@
                     <th colspan="3">II. Employer Savings (PF)</th>
                 </tr>
                 <tr>
-                    <th>Employer PF Contribution (<span id="pfRateDisplay">12% of Basic Salary</span>)</th>
-                    <td id="employerPFAnnual">—</td>
-                    <td id="employerPFMonthly">—</td>
+                    <th>Employer PF Contribution (<span id="pfRateDisplayOld">12% of Basic Salary</span>)</th>
+                    <td id="employerPFAnnualOld">—</td>
+                    <td id="employerPFMonthlyOld">—</td>
                 </tr>
 
                 <!-- D) Section 3: Cost to Company (Total CTC) -->
@@ -338,8 +443,8 @@
                 <!-- E) Subtotal: TOTAL CTC (Blue) -->
                 <tr class="subtotal-bar subtotal-bar-blue">
                     <th>ANNUAL CTC</th>
-                    <td id="annualCTC">—</td>
-                    <td id="monthlyCTC">—</td>
+                    <td id="annualCTCOld">—</td>
+                    <td id="monthlyCTCOld">—</td>
                 </tr>
                 
                 <!-- D) Section 4: Employee Deductions -->
@@ -350,26 +455,26 @@
                 <!-- Deductions -->
                 <tr>
                     <th>Employee PF Contribution</th>
-                    <td id="employeePFAnnual">—</td>
-                    <td id="employeePFMonthly">—</td>
+                    <td id="employeePFAnnualOld">—</td>
+                    <td id="employeePFMonthlyOld">—</td>
                 </tr>
                 <tr>
                     <th>Professional Tax</th>
-                    <td id="ptAnnual">—</td>
-                    <td id="ptMonthly">—</td>
+                    <td id="ptAnnualOld">—</td>
+                    <td id="ptMonthlyOld">—</td>
                 </tr>
                 <!-- E) Subtotal: Income Tax Estimate (Orange) -->
                 <tr class="subtotal-bar subtotal-bar-tax">
-                    <th>Estimated Income Tax (<span id="regimeDisplay">New Regime (Slab Tax)</span>)</th>
-                    <td id="incomeTaxAnnual">—</td>
-                    <td id="incomeTaxMonthly">—</td>
+                    <th>Estimated Income Tax (<span id="regimeDisplayOld">Old Regime (Slab Tax)</span>)</th>
+                    <td id="incomeTaxAnnualOld">—</td>
+                    <td id="incomeTaxMonthlyOld">—</td>
                 </tr>
                 
                 <!-- E) Subtotal: TOTAL DEDUCTION (Purple) -->
                 <tr class="subtotal-bar subtotal-bar-deduction">
                     <th>TOTAL DEDUCTION</th>
-                    <td id="totalDeductionAnnual">—</td>
-                    <td id="totalDeductionMonthly">—</td>
+                    <td id="totalDeductionAnnualOld">—</td>
+                    <td id="totalDeductionMonthlyOld">—</td>
                 </tr>
                 
                 <!-- D) Section 5: Net Take Home (Final) -->
@@ -379,8 +484,8 @@
                 <!-- E) Final Take Home (Green 3) -->
                 <tr class="subtotal-bar subtotal-bar-net">
                     <th>TOTAL NET TAKE HOME (ESTIMATE)</th>
-                    <td id="netTakeHomeAnnual">—</td>
-                    <td id="netTakeHomeMonthly">—</td>
+                    <td id="netTakeHomeAnnualOld">—</td>
+                    <td id="netTakeHomeMonthlyOld">—</td>
                 </tr>
             </tbody>
         </table>
@@ -445,7 +550,7 @@
     
     // --- TAX CALCULATION HELPERS (Based on the prompt slabs) ---
 
-    // New Regime Tax Slabs
+    // New Regime Tax Slabs (Includes 4% Cess)
     function computeNewRegimeTax(taxableIncome) {
         let tax = 0;
         let income = taxableIncome;
@@ -472,13 +577,12 @@
             income = 300000;
         }
         
-        // Apply 4% Cess (Health and Education Cess)
-        let totalTax = tax * 1.04; 
+        let totalTax = tax * 1.04; // Apply 4% Cess
         
         return Math.round(Math.max(0, totalTax));
     }
 
-    // Old Regime Tax Slabs
+    // Old Regime Tax Slabs (Includes 4% Cess)
     function computeOldRegimeTax(taxableIncome) {
         let tax = 0;
         let income = taxableIncome;
@@ -497,23 +601,34 @@
             income = 250000;
         }
         
-        // Apply 4% Cess (Health and Education Cess)
-        let totalTax = tax * 1.04;
+        let totalTax = tax * 1.04; // Apply 4% Cess
 
         return Math.round(Math.max(0, totalTax));
     }
 
     // Helper to clear all results to '—' (C)
     function clearResults() {
+        // Collect all potential IDs for both tables
         const ids = [
-            'annualCTC', 'monthlyCTC', 'basicAnnual', 'basicMonthly', 'hraAnnual', 'hraMonthly', 
-            'ltaAnnual', 'ltaMonthly', 'ceaAnnual', 'ceaMonthly', 'telephoneAnnual', 'telephoneMonthly', 
-            'sodexoAnnual', 'sodexoMonthly', 'carRepairAnnual', 'carRepairMonthly', 'profDevAnnual', 'profDevMonthly', 
-            'booksAnnual', 'booksMonthly', 'specialAllowanceAnnual', 'specialAllowanceMonthly', 
-            'fixedCTCAnnual', 'fixedCTCMonthly', 'employerPFAnnual', 'employerPFMonthly', 'employeePFAnnual', 'employeePFMonthly', 
-            'ptAnnual', 'ptMonthly', 'incomeTaxAnnual', 'incomeTaxMonthly', 
-            'totalDeductionAnnual', 'totalDeductionMonthly', 'netTakeHomeAnnual', 'netTakeHomeMonthly',
-            'summaryAnnualCTC', 'summaryNetTakeHomeMonthly' /* Summary Card (B) */
+            // New Regime IDs
+            'annualCTCNew', 'monthlyCTCNew', 'basicAnnualNew', 'basicMonthlyNew', 'hraAnnualNew', 'hraMonthlyNew', 
+            'specialAllowanceAnnualNew', 'specialAllowanceMonthlyNew', 'fixedCTCAnnualNew', 'fixedCTCMonthlyNew', 
+            'employerPFAnnualNew', 'employerPFMonthlyNew', 'employeePFAnnualNew', 'employeePFMonthlyNew', 
+            'ptAnnualNew', 'ptMonthlyNew', 'incomeTaxAnnualNew', 'incomeTaxMonthlyNew', 
+            'totalDeductionAnnualNew', 'totalDeductionMonthlyNew', 'netTakeHomeAnnualNew', 'netTakeHomeMonthlyNew',
+            
+            // Old Regime IDs
+            'annualCTCOld', 'monthlyCTCOld', 'basicAnnualOld', 'basicMonthlyOld', 'hraAnnualOld', 'hraMonthlyOld', 
+            'ltaAnnualOld', 'ltaMonthlyOld', 'ceaAnnualOld', 'ceaMonthlyOld', 'telephoneAnnualOld', 'telephoneMonthlyOld', 
+            'sodexoAnnualOld', 'sodexoMonthlyOld', 'carRepairAnnualOld', 'carRepairMonthlyOld', 'profDevAnnualOld', 'profDevMonthlyOld', 
+            'booksAnnualOld', 'booksMonthlyOld', 'specialAllowanceAnnualOld', 'specialAllowanceMonthlyOld', 
+            'fixedCTCAnnualOld', 'fixedCTCMonthlyOld', 'employerPFAnnualOld', 'employerPFMonthlyOld', 
+            'employeePFAnnualOld', 'employeePFMonthlyOld', 'ptAnnualOld', 'ptMonthlyOld', 
+            'incomeTaxAnnualOld', 'incomeTaxMonthlyOld', 'totalDeductionAnnualOld', 'totalDeductionMonthlyOld', 
+            'netTakeHomeAnnualOld', 'netTakeHomeMonthlyOld',
+            
+            // Summary Card IDs
+            'summaryAnnualCTC', 'summaryNetTakeHomeMonthly'
         ];
         
         ids.forEach(id => {
@@ -525,8 +640,10 @@
         const pfOption = document.getElementById('pfOption');
         const taxRegime = document.getElementById('taxRegime');
 
-        document.getElementById('pfRateDisplay').textContent = pfOption.options[pfOption.selectedIndex].textContent;
-        document.getElementById('regimeDisplay').textContent = taxRegime.options[taxRegime.selectedIndex].textContent;
+        document.getElementById('pfRateDisplayNew').textContent = pfOption.options[pfOption.selectedIndex].textContent;
+        document.getElementById('pfRateDisplayOld').textContent = pfOption.options[pfOption.selectedIndex].textContent;
+        document.getElementById('regimeDisplayNew').textContent = taxRegime.options[taxRegime.selectedIndex].textContent;
+        document.getElementById('regimeDisplayOld').textContent = taxRegime.options[taxRegime.selectedIndex].textContent;
         document.getElementById('summaryPFMode').textContent = pfOption.options[pfOption.selectedIndex].textContent;
         document.getElementById('summaryTaxRegime').textContent = taxRegime.options[taxRegime.selectedIndex].textContent;
     }
@@ -544,12 +661,12 @@
 
         if (annual_gross_salary <= 0 && grossSalaryInput !== '0') {
             clearResults();
+            renderTable(tax_regime); // Still render the correct empty table
             return;
         }
         
         // --- 1) ANNUAL CTC (Derived from Gross) ---
         // Note: The logic fixed_ctc_annual * 0.94 should equal gross_salary.
-        // We use annual_ctc = annual_gross_salary / 0.94
         const annual_ctc = Math.round(annual_gross_salary / 0.94);
 
         // --- 2) BASIC (50% of CTC) AND HRA (40% OF BASIC) ---
@@ -627,72 +744,118 @@
         const net_take_home_annual = fixed_ctc_annual - total_deductions_annual;
         const net_take_home_monthly = fixed_ctc_monthly - total_deductions_monthly;
 
-        // --- FINAL UI UPDATE ---
-
+        // --- FINAL UI UPDATE (Conditional based on regime) ---
+        
         // Update dynamic text displays
         const pfOption = document.getElementById('pfOption');
-        const taxRegime = document.getElementById('taxRegime');
-        document.getElementById('pfRateDisplay').textContent = pfOption.options[pfOption.selectedIndex].textContent;
-        document.getElementById('regimeDisplay').textContent = taxRegime.options[taxRegime.selectedIndex].textContent;
+        document.getElementById('pfRateDisplayNew').textContent = pfOption.options[pfOption.selectedIndex].textContent;
+        document.getElementById('pfRateDisplayOld').textContent = pfOption.options[pfOption.selectedIndex].textContent;
+        document.getElementById('regimeDisplayNew').textContent = tax_regime === 'new' ? 'New Regime (Slab Tax)' : 'Old Regime (Slab Tax)';
+        document.getElementById('regimeDisplayOld').textContent = tax_regime === 'new' ? 'New Regime (Slab Tax)' : 'Old Regime (Slab Tax)';
         
         // Summary Card Update (B)
         document.getElementById('summaryAnnualCTC').textContent = formatCurrencyDisplay(total_ctc_annual);
         document.getElementById('summaryNetTakeHomeMonthly').textContent = formatCurrencyDisplay(net_take_home_monthly);
         document.getElementById('summaryPFMode').textContent = pfOption.options[pfOption.selectedIndex].textContent;
-        document.getElementById('summaryTaxRegime').textContent = taxRegime.options[taxRegime.selectedIndex].textContent;
+        document.getElementById('summaryTaxRegime').textContent = tax_regime === 'new' ? 'New Regime' : 'Old Regime';
 
-        // Table updates
-        document.getElementById('annualCTC').textContent = formatCurrencyDisplay(total_ctc_annual);
-        document.getElementById('monthlyCTC').textContent = formatCurrencyDisplay(total_ctc_monthly);
-        document.getElementById('basicAnnual').textContent = formatCurrencyDisplay(basic_annual);
-        document.getElementById('basicMonthly').textContent = formatCurrencyDisplay(basic_monthly);
-        document.getElementById('hraAnnual').textContent = formatCurrencyDisplay(hra_annual);
-        document.getElementById('hraMonthly').textContent = formatCurrencyDisplay(hra_monthly);
-        document.getElementById('ltaAnnual').textContent = formatCurrencyDisplay(lta_annual);
-        document.getElementById('ltaMonthly').textContent = formatCurrencyDisplay(lta_monthly);
-        document.getElementById('ceaAnnual').textContent = formatCurrencyDisplay(cea_annual);
-        document.getElementById('ceaMonthly').textContent = formatCurrencyDisplay(cea_monthly);
-        document.getElementById('telephoneAnnual').textContent = formatCurrencyDisplay(telephone_annual);
-        document.getElementById('telephoneMonthly').textContent = formatCurrencyDisplay(telephone_monthly);
-        document.getElementById('sodexoAnnual').textContent = formatCurrencyDisplay(sodexo_annual);
-        document.getElementById('sodexoMonthly').textContent = formatCurrencyDisplay(sodexo_monthly);
-        document.getElementById('carRepairAnnual').textContent = formatCurrencyDisplay(car_repair_annual);
-        document.getElementById('carRepairMonthly').textContent = formatCurrencyDisplay(car_repair_monthly);
-        document.getElementById('profDevAnnual').textContent = formatCurrencyDisplay(prof_dev_annual);
-        document.getElementById('profDevMonthly').textContent = formatCurrencyDisplay(prof_dev_monthly);
-        document.getElementById('booksAnnual').textContent = formatCurrencyDisplay(books_annual);
-        document.getElementById('booksMonthly').textContent = formatCurrencyDisplay(books_monthly);
-        document.getElementById('specialAllowanceAnnual').textContent = formatCurrencyDisplay(special_allowance_annual);
-        document.getElementById('specialAllowanceMonthly').textContent = formatCurrencyDisplay(special_allowance_monthly);
-        document.getElementById('fixedCTCAnnual').textContent = formatCurrencyDisplay(fixed_ctc_annual);
-        document.getElementById('fixedCTCMonthly').textContent = formatCurrencyDisplay(fixed_ctc_monthly);
-        document.getElementById('employerPFAnnual').textContent = formatCurrencyDisplay(employer_pf_annual);
-        document.getElementById('employerPFMonthly').textContent = formatCurrencyDisplay(employer_pf_monthly);
-        document.getElementById('employeePFAnnual').textContent = formatCurrencyDisplay(employee_pf_annual);
-        document.getElementById('employeePFMonthly').textContent = formatCurrencyDisplay(employee_pf_monthly);
-        document.getElementById('ptAnnual').textContent = formatCurrencyDisplay(prof_tax_annual);
-        document.getElementById('ptMonthly').textContent = formatCurrencyDisplay(prof_tax_monthly);
-        document.getElementById('incomeTaxAnnual').textContent = formatCurrencyDisplay(income_tax_annual);
-        document.getElementById('incomeTaxMonthly').textContent = formatCurrencyDisplay(income_tax_monthly);
-        document.getElementById('totalDeductionAnnual').textContent = formatCurrencyDisplay(total_deductions_annual);
-        document.getElementById('totalDeductionMonthly').textContent = formatCurrencyDisplay(total_deductions_monthly);
-        document.getElementById('netTakeHomeAnnual').textContent = formatCurrencyDisplay(net_take_home_annual);
-        document.getElementById('netTakeHomeMonthly').textContent = formatCurrencyDisplay(net_take_home_monthly);
+
+        if (tax_regime === 'new') {
+            // New Regime (Simple structure)
+            document.getElementById('basicAnnualNew').textContent = formatCurrencyDisplay(basic_annual);
+            document.getElementById('basicMonthlyNew').textContent = formatCurrencyDisplay(basic_monthly);
+            document.getElementById('hraAnnualNew').textContent = formatCurrencyDisplay(hra_annual);
+            document.getElementById('hraMonthlyNew').textContent = formatCurrencyDisplay(hra_monthly);
+            document.getElementById('specialAllowanceAnnualNew').textContent = formatCurrencyDisplay(special_allowance_annual);
+            document.getElementById('specialAllowanceMonthlyNew').textContent = formatCurrencyDisplay(special_allowance_monthly);
+            document.getElementById('fixedCTCAnnualNew').textContent = formatCurrencyDisplay(fixed_ctc_annual);
+            document.getElementById('fixedCTCMonthlyNew').textContent = formatCurrencyDisplay(fixed_ctc_monthly);
+            document.getElementById('employerPFAnnualNew').textContent = formatCurrencyDisplay(employer_pf_annual);
+            document.getElementById('employerPFMonthlyNew').textContent = formatCurrencyDisplay(employer_pf_monthly);
+            document.getElementById('annualCTCNew').textContent = formatCurrencyDisplay(total_ctc_annual);
+            document.getElementById('monthlyCTCNew').textContent = formatCurrencyDisplay(total_ctc_monthly);
+            document.getElementById('employeePFAnnualNew').textContent = formatCurrencyDisplay(employee_pf_annual);
+            document.getElementById('employeePFMonthlyNew').textContent = formatCurrencyDisplay(employee_pf_monthly);
+            document.getElementById('ptAnnualNew').textContent = formatCurrencyDisplay(prof_tax_annual);
+            document.getElementById('ptMonthlyNew').textContent = formatCurrencyDisplay(prof_tax_monthly);
+            document.getElementById('incomeTaxAnnualNew').textContent = formatCurrencyDisplay(income_tax_annual);
+            document.getElementById('incomeTaxMonthlyNew').textContent = formatCurrencyDisplay(income_tax_monthly);
+            document.getElementById('totalDeductionAnnualNew').textContent = formatCurrencyDisplay(total_deductions_annual);
+            document.getElementById('totalDeductionMonthlyNew').textContent = formatCurrencyDisplay(total_deductions_monthly);
+            document.getElementById('netTakeHomeAnnualNew').textContent = formatCurrencyDisplay(net_take_home_annual);
+            document.getElementById('netTakeHomeMonthlyNew').textContent = formatCurrencyDisplay(net_take_home_monthly);
+            
+        } else {
+            // Old Regime (Expanded structure)
+            document.getElementById('basicAnnualOld').textContent = formatCurrencyDisplay(basic_annual);
+            document.getElementById('basicMonthlyOld').textContent = formatCurrencyDisplay(basic_monthly);
+            document.getElementById('hraAnnualOld').textContent = formatCurrencyDisplay(hra_annual);
+            document.getElementById('hraMonthlyOld').textContent = formatCurrencyDisplay(hra_monthly);
+            document.getElementById('ltaAnnualOld').textContent = formatCurrencyDisplay(lta_annual);
+            document.getElementById('ltaMonthlyOld').textContent = formatCurrencyDisplay(lta_monthly);
+            document.getElementById('ceaAnnualOld').textContent = formatCurrencyDisplay(cea_annual);
+            document.getElementById('ceaMonthlyOld').textContent = formatCurrencyDisplay(cea_monthly);
+            document.getElementById('telephoneAnnualOld').textContent = formatCurrencyDisplay(telephone_annual);
+            document.getElementById('telephoneMonthlyOld').textContent = formatCurrencyDisplay(telephone_monthly);
+            document.getElementById('sodexoAnnualOld').textContent = formatCurrencyDisplay(sodexo_annual);
+            document.getElementById('sodexoMonthlyOld').textContent = formatCurrencyDisplay(sodexo_monthly);
+            document.getElementById('carRepairAnnualOld').textContent = formatCurrencyDisplay(car_repair_annual);
+            document.getElementById('carRepairMonthlyOld').textContent = formatCurrencyDisplay(car_repair_monthly);
+            document.getElementById('profDevAnnualOld').textContent = formatCurrencyDisplay(prof_dev_annual);
+            document.getElementById('profDevMonthlyOld').textContent = formatCurrencyDisplay(prof_dev_monthly);
+            document.getElementById('booksAnnualOld').textContent = formatCurrencyDisplay(books_annual);
+            document.getElementById('booksMonthlyOld').textContent = formatCurrencyDisplay(books_monthly);
+            document.getElementById('specialAllowanceAnnualOld').textContent = formatCurrencyDisplay(special_allowance_annual);
+            document.getElementById('specialAllowanceMonthlyOld').textContent = formatCurrencyDisplay(special_allowance_monthly);
+            document.getElementById('fixedCTCAnnualOld').textContent = formatCurrencyDisplay(fixed_ctc_annual);
+            document.getElementById('fixedCTCMonthlyOld').textContent = formatCurrencyDisplay(fixed_ctc_monthly);
+            document.getElementById('employerPFAnnualOld').textContent = formatCurrencyDisplay(employer_pf_annual);
+            document.getElementById('employerPFMonthlyOld').textContent = formatCurrencyDisplay(employer_pf_monthly);
+            document.getElementById('annualCTCOld').textContent = formatCurrencyDisplay(total_ctc_annual);
+            document.getElementById('monthlyCTCOld').textContent = formatCurrencyDisplay(total_ctc_monthly);
+            document.getElementById('employeePFAnnualOld').textContent = formatCurrencyDisplay(employee_pf_annual);
+            document.getElementById('employeePFMonthlyOld').textContent = formatCurrencyDisplay(employee_pf_monthly);
+            document.getElementById('ptAnnualOld').textContent = formatCurrencyDisplay(prof_tax_annual);
+            document.getElementById('ptMonthlyOld').textContent = formatCurrencyDisplay(prof_tax_monthly);
+            document.getElementById('incomeTaxAnnualOld').textContent = formatCurrencyDisplay(income_tax_annual);
+            document.getElementById('incomeTaxMonthlyOld').textContent = formatCurrencyDisplay(income_tax_monthly);
+            document.getElementById('totalDeductionAnnualOld').textContent = formatCurrencyDisplay(total_deductions_annual);
+            document.getElementById('totalDeductionMonthlyOld').textContent = formatCurrencyDisplay(total_deductions_monthly);
+            document.getElementById('netTakeHomeAnnualOld').textContent = formatCurrencyDisplay(net_take_home_annual);
+            document.getElementById('netTakeHomeMonthlyOld').textContent = formatCurrencyDisplay(net_take_home_monthly);
+        }
+
+        renderTable(tax_regime);
     }
     
-    function toggleOldRegimeAllowances() {
-        const regime = document.getElementById('taxRegime').value;
-        const allowancesDiv = document.getElementById('oldRegimeAllowances');
-        if (regime === 'old') {
-            allowancesDiv.classList.remove('hidden');
+    function renderTable(regime) {
+        const tableNew = document.getElementById('ctc-table-new');
+        const tableOld = document.getElementById('ctc-table-old');
+        const infoBox = document.getElementById('oldRegimeAllowances');
+
+        if (regime === 'new') {
+            tableNew.style.display = 'table';
+            tableOld.style.display = 'none';
+            infoBox.classList.add('hidden'); // Hide info box for new regime
         } else {
-            allowancesDiv.classList.add('hidden');
+            tableNew.style.display = 'none';
+            tableOld.style.display = 'table';
+            infoBox.classList.remove('hidden'); // Show info box for old regime
         }
-        calculateCTC(); // Recalculate when regime changes
     }
 
-    // --- PDF Download Functionality ---
+    function toggleOldRegimeAllowances() {
+        // This function is now redundant for visibility control, but keeps input event handler clean.
+        // Visibility is now fully controlled by renderTable(regime) inside calculateCTC() and initialization.
+    }
+
+    // --- PDF Download Functionality (Captures the visible table) ---
     async function downloadPDF() {
+        // Determine which table is currently visible and set it as the input element
+        const isNewRegime = document.getElementById('taxRegime').value === 'new';
+        const visibleTableId = isNewRegime ? 'ctc-table-new' : 'ctc-table-old';
+        
+        // Capture the parent container, which is what html2canvas expects for sizing
         const input = document.getElementById('results-container'); 
         const { jsPDF } = window.jspdf;
         
@@ -708,6 +871,7 @@
 
         calculateCTC(); 
 
+        // Important: html2canvas captures the WHOLE div, which works best here.
         html2canvas(input, { scale: 2 }).then(canvas => {
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
@@ -729,7 +893,7 @@
             pdf.setFontSize(8);
             pdf.text('Disclaimer: This tool provides an **estimation** for illustrative purposes only. Actual net take-home salary may vary based on company policies, investment declarations, and final tax calculations.', 10, pdfHeight - 10);
             
-            pdf.save("CTC_Breakdown_Report.pdf");
+            pdf.save(`CTC_Breakdown_Report_${isNewRegime ? 'New' : 'Old'}_Regime.pdf`);
         }).catch(error => {
             console.error("Error generating PDF:", error);
             const messageBox = document.createElement('div');
@@ -744,7 +908,8 @@
     window.onload = function() {
         clearResults(); 
         calculateCTC(); 
-        toggleOldRegimeAllowances();
+        // Initial render based on default dropdown value
+        renderTable(document.getElementById('taxRegime').value);
     };
 
 </script>
