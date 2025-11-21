@@ -55,11 +55,6 @@
             box-shadow: 0 0 0 1px #55AAC3;
         }
 
-        /* FIX: Increased padding for icon alignment (32px to 40px equivalent) */
-        .input-with-icon {
-            padding-left: 3rem !important; /* p-12 in Tailwind is 3rem = 48px, but since we are using fixed padding in the CSS above, we use an inline class or more specific styling */
-        }
-
         /* B) SUMMARY CARD */
         .summary-card-container {
             background-color: white;
@@ -198,6 +193,23 @@
             list-style: disc;
             margin-left: 20px;
         }
+        /* New Footer Styling */
+        .app-footer {
+            max-width: 48rem; /* Match max-w-4xl */
+            padding: 1rem 0;
+            margin-top: 1rem;
+            /* REMOVED: text-align: center; */
+            text-align: left; /* NEW: Left-aligned */
+        }
+        .app-footer p, .app-footer a {
+            font-size: 11px; /* Extra small */
+            color: #888888; /* Darker gray for minimal contrast */
+            line-height: 1.5;
+        }
+        .app-footer a {
+            color: #55AAC3; /* Blue link color */
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -209,12 +221,11 @@
     <!-- INPUT BAR (A) -->
     <div id="inputs-section" class="input-panel-container mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Annual Gross Salary Input -->
+            <!-- 1) Annual Gross Salary Input -->
             <div class="input-group">
-                <label for="grossSalary">Annual Gross Salary</label> 
+                <label for="grossSalary">Annual Gross Salary (INR)</label> 
                 <div class="relative">
-                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 0s1 4 5 4m-5 4h6m-1 3.5l1-1.5m-3-1l-1-1.5m3-1l1-1.5m-3-1l-1-1.5m2-2l-1-1.5m2 2V5m-4 14v-4m-3-1h8m-8-2h8m-8-2h8"></path></svg>
-                    <input type="number" id="grossSalary" placeholder="0" min="0" class="input-with-icon pl-12 pr-3" oninput="calculateCTC()">
+                    <input type="number" id="grossSalary" placeholder="0" min="0" class="pr-3" oninput="calculateCTC()">
                 </div>
             </div>
 
@@ -227,14 +238,14 @@
                 </select>
             </div>
 
-            <!-- PF Contribution Selection -->
+            <!-- 2) Employer PF Contribution Selection -->
             <div class="input-group">
                 <label>Employer PF Contribution</label>
                 <div class="relative">
-                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 1.343 3 3s-1.343 3-3 3 1.343-3 3-3zM10 20v-5m4 0v5m-4-7h4m-4 0v-4m4 4h4m-4-4v4"></path></svg>
-                    <select id="pfOption" class="input-with-icon pl-12 pr-3" onchange="calculateCTC()">
+                    <select id="pfOption" class="pr-3" onchange="calculateCTC()">
                         <option value="percentage">12% of Basic Salary</option>
-                        <option value="fixed">INR 1,800 per month (₹21,600 annual)</option>
+                        <!-- CHANGE: Replace "INR" with "₹" -->
+                        <option value="fixed">₹1,800 per month (₹21,600 annual)</option>
                     </select>
                 </div>
             </div>
@@ -272,23 +283,31 @@
 
         <!-- 🧱 BLOCK 1 — Information Block (New) -->
         <div id="newExemptionBanner" class="p-4 old-regime-info rounded-lg mb-8 hidden">
-            <h3 class="text-base font-bold mb-3">Flexible Allowances & Exemption Limits (Old Regime)</h3>
-            <p class="text-sm mb-4">The flexible allowances in this section are capped at their respective exemption limits. This calculator automatically allocates as much as possible within those limits based on your salary. When the salary is too low to fund all allowances, some allowances will be reduced to zero and the remaining balance stays in Special Allowance (fully taxable).</p>
-            
-            <!-- FIX: Restructuring to a cleaner two-column layout using two ULs inside a grid container -->
-            <div class="grid grid-cols-1 md:grid-cols-2 text-sm gap-x-6 gap-y-1">
-                <ul class="list-disc ml-5 space-y-1 text-sm text-yellow-900">
-                    <li class="pl-1">Meal allowance – Maximum exemption INR 36,000/year.</li>
-                    <li class="pl-1">Periodicals & journals allowance – Maximum exemption INR 24,000/year.</li>
-                    <li class="pl-1">Leave travel allowance – Max entitlement = 1 month basic salary.</li>
-                    <li class="pl-1">Car running & maintenance – Maximum exemption INR 24,000/year.</li>
-                </ul>
-                <ul class="list-disc ml-5 space-y-1 text-sm text-yellow-900">
-                    <li class="pl-1">Communication allowance – Maximum exemption INR 24,000/year.</li>
-                    <li class="pl-1">Professional development allowance – Maximum exemption INR 24,000/year.</li>
-                    <li class="pl-1">Children education allowance – Maximum exemption INR 2,400/year.</li>
-                    <li class="pl-1">Driver salary – Maximum exemption INR 10,800/year.</li>
-                </ul>
+            <!-- 2 & 3: Collapsible Header Row and Icon -->
+            <div class="flex items-center justify-between cursor-pointer" onclick="document.getElementById('oldRegimeInfoContent').classList.toggle('hidden');">
+                <h3 class="text-base font-bold mb-3">Flexible Allowances & Exemption Limits (Old Regime)</h3>
+                <button id="oldRegimeInfoToggle" class="w-7 h-7 flex items-center justify-center rounded-full bg-yellow-500 text-white font-semibold">i</button>
+            </div>
+
+            <!-- 1: Content (Initially hidden via JS at load) -->
+            <div id="oldRegimeInfoContent" class="hidden">
+                <p class="text-sm mb-4">The flexible allowances in this section are capped at their respective exemption limits. This calculator automatically allocates as much as possible within those limits based on your salary. When the salary is too low to fund all allowances, some allowances will be reduced to zero and the remaining balance stays in Special Allowance (fully taxable).</p>
+                
+                <!-- CLEANED UP LIST FORMAT -->
+                <div class="grid grid-cols-1 md:grid-cols-2 text-sm gap-x-6 gap-y-1">
+                    <ul class="list-disc ml-5 space-y-1 text-sm text-yellow-900">
+                        <li class="pl-1">Meal allowance – Max exemption INR 36,000/year.</li>
+                        <li class="pl-1">Periodicals & journals – Max exemption INR 36,000/year.</li>
+                        <li class="pl-1">Leave travel allowance – Max entitlement = 1 month of basic salary.</li>
+                        <li class="pl-1">Car running & maintenance – Max exemption INR 28,800/year.</li>
+                    </ul>
+                    <ul class="list-disc ml-5 space-y-1 text-sm text-yellow-900">
+                        <li class="pl-1">Telephone / communication allowance – Max exemption INR 36,000/year.</li>
+                        <li class="pl-1">Professional development allowance – Max exemption INR 36,000/year.</li>
+                        <li class="pl-1">Children education allowance – Max exemption INR 2,400/year.</li>
+                        <li class="pl-1">Sodexo / meal coupons – company can opt for 13,200, 26,400 or 36,000 INR per year; assume 36,000 for this calculator.</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -556,17 +575,33 @@
             </ul>
         </details>
 
-        <div class="flex justify-center mt-6">
-            <!-- 5. PDF BUTTON (Blue) -->
+        <!-- 1) DOWNLOAD BUTTON (Moved inside #results-block, centered) -->
+        <div class="flex justify-center mt-6 w-full">
             <button onclick="downloadPDF()" class="bg-[#55AAC3] hover:bg-[#3F8DA6] text-white font-semibold py-2 px-6 rounded-lg shadow-lg transition duration-150 flex items-center">
                 <!-- Document/Download Icon -->
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 Download Full PDF Report
             </button>
         </div>
-        <p class="text-xs text-gray-500 mt-4 text-center" style="color: #323232;">Disclaimer: This tool provides an <strong>estimation</strong> strictly based on the defined model logic. Actual tax and net take-home salary may vary significantly.</p>
-    </div>
 
+        <!-- 2) DISCLAIMER + REFERENCES FOOTER (Moved inside #results-block, left-aligned) -->
+        <div class="app-footer w-full" style="text-align: left;">
+            <!-- 1) Disclaimer Text -->
+            <p class="text-xs text-gray-500 mt-4" style="color: #888888; font-size: 11px;">
+                Disclaimer: This tool provides an <strong>estimation</strong> strictly based on the defined model logic. Actual tax and net take-home salary may vary significantly.
+            </p>
+            <!-- 2) References -->
+            <p class="text-xs mt-2" style="color: #888888; font-size: 11px;">
+                <strong>References:</strong>
+                <br>
+                – Income tax slabs – <a href="https://www.incometax.gov.in/" target="_blank">Government of India</a>
+                <br>
+                – Provident Fund rates – <a href="https://www.epfindia.gov.in/" target="_blank">EPFO</a>
+                <br>
+                – Professional Tax and other local rules – refer to your state government’s official website.
+            </p>
+        </div>
+    </div>
 </div>
 
 <!-- jsPDF and html2canvas CDNs for PDF generation -->
@@ -605,17 +640,17 @@
     // ---------------------------------------------------------------------------------------------------------
 
 
-    // --- CONFIGURATION CONSTANTS (Annual Amounts) ---
+    // --- 1) CONFIGURATION CONSTANTS (Annual Amounts) ---
     const CEA_ANNUAL = 2400;
     const TELEPHONE_ANNUAL = 36000;
     const SODEXO_ANNUAL = 36000;
-    const CAR_REPAIR_ANNUAL = 28000;
+    const CAR_REPAIR_ANNUAL = 28800; // UPDATED
     const PROF_DEV_ANNUAL = 36000;
     const BOOKS_ANNUAL = 36000;
     const PROFESSIONAL_TAX_ANNUAL = 2400;
     const MONTHS_PER_YEAR = 12;
-    // Driver salary is not used in calculation but mentioned in the exemption text.
-    const DRIVER_ANNUAL = 10800; 
+    // Removed DRIVER_ANNUAL constant
+    
 
     // --- 4. NUMBER FORMATTING (English-India Excel style) ---
     const formatCurrencyDisplay = (value) => {
@@ -771,7 +806,7 @@
         
         const pf_mode_selection = document.getElementById('pfOption').value;
         const tax_regime = document.getElementById('taxRegime').value;
-        const pf_mode = (pf_mode_selection === 'percentage') ? 'PERCENT_12' : 'CAP_1800';
+        const pf_mode = (pf_mode_selection === 'percentage') ? 'PERCENT_12' : 'FIXED_1800';
         
         // NEW UX LOGIC: Show/Hide results block based on valid input
         const resultsBlock = document.getElementById('results-block');
@@ -786,7 +821,6 @@
         if (resultsBlock) resultsBlock.classList.remove('hidden'); // Show results block on valid input
 
         // --- 1) ANNUAL CTC (Derived from Gross) ---
-        // We calculate Annual CTC based on the formula ROUND(G / 0.94, 0) provided in the business logic, where G is FixedCTC.
         const annual_ctc_derived = Math.round(annual_gross_salary / 0.94);
 
         // --- 2) BASIC (50% of CTC) AND HRA (40% OF BASIC) ---
@@ -795,27 +829,38 @@
         const hra_annual = Math.round(basic_annual * 0.40);
         const hra_monthly = Math.round(hra_annual / MONTHS_PER_YEAR);
 
-        // --- 5) PROVIDENT FUND – 2 MODES (Used in both regimes) ---
-        let employer_pf_annual, employer_pf_monthly;
+        
+        // --- PF/CTC LOGIC ADJUSTMENT START (UNCHANGED) ---
+        
+        // 2. Employer PF (Component of CTC) - ALWAYS 12% of Basic, regardless of dropdown choice.
+        const employer_pf_annual_ctc = Math.round(basic_annual * 0.12);
+        const employer_pf_monthly_ctc = Math.round(employer_pf_annual_ctc / MONTHS_PER_YEAR);
+
+        // 1. Total CTC - ALWAYS calculated using the fixed Employer PF Contribution
+        const fixed_ctc_annual = annual_gross_salary;
+        const total_ctc_annual = fixed_ctc_annual + employer_pf_annual_ctc; 
+        
+        // 3. Employee PF (Deduction from Net Take Home) - Varies based on dropdown
+        let employee_pf_annual_deduction;
+        let employee_pf_monthly_deduction;
 
         if (pf_mode === "PERCENT_12") {
-            employer_pf_annual = Math.round(basic_annual * 0.12);
-            employer_pf_monthly = Math.round(employer_pf_annual / MONTHS_PER_YEAR);
-        } else { // pf_mode === "CAP_1800"
-            employer_pf_monthly = 1800;
-            employer_pf_annual = employer_pf_monthly * MONTHS_PER_YEAR;
+            // Employee PF deduction is 12% of Basic, mirroring the standard contribution amount
+            employee_pf_annual_deduction = employer_pf_annual_ctc; 
+            employee_pf_monthly_deduction = employer_pf_monthly_ctc;
+        } else { // pf_mode === "FIXED_1800" (INR 1,800 per month)
+            // Employee PF deduction is fixed at 21,600 annual (1800 * 12)
+            employee_pf_monthly_deduction = 1800;
+            employee_pf_annual_deduction = employee_pf_monthly_deduction * MONTHS_PER_YEAR;
         }
-
-        const employee_pf_annual = employer_pf_annual;
-        const employee_pf_monthly = employer_pf_monthly;
         
+        // --- PF/CTC LOGIC ADJUSTMENT END ---
+
+
         // --- FIXED CTC (FixedCTC = Annual Gross Salary (G)) ---
-        const fixed_ctc_annual = annual_gross_salary;
+        
         const fixed_ctc_monthly = Math.round(fixed_ctc_annual / MONTHS_PER_YEAR);
         
-        // The actual Total CTC must be Fixed CTC + Employer PF (to maintain the CTC total)
-        const total_ctc_annual = fixed_ctc_annual + employer_pf_annual; 
-
         // --- DEDUCTIONS ---
         const prof_tax_annual = PROFESSIONAL_TAX_ANNUAL;
         const prof_tax_monthly = Math.round(prof_tax_annual / MONTHS_PER_YEAR);
@@ -849,6 +894,7 @@
             const sum_non_negotiable = basic_annual + hra_annual;
             let budget_remaining = fixed_ctc_annual - sum_non_negotiable;
 
+            // 2) Old Regime optional_allowances_calc object with updated constants
             const optional_allowances_calc = {
                 books_annual: BOOKS_ANNUAL,
                 prof_dev_annual: PROF_DEV_ANNUAL,
@@ -864,6 +910,7 @@
             if (budget_remaining < required_optional_sum) {
                 low_salary_flag = true;
                 
+                // Priority keys must match the allowance names in the optional_allowances_calc object
                 const priority_keys = [
                     'books_annual', 'prof_dev_annual', 'car_repair_annual', 'sodexo_annual', 
                     'telephone_annual', 'cea_annual', 'lta_annual'
@@ -926,11 +973,12 @@
                 }
             }
             
-            // --- DEDUCTIONS & NET TAKE HOME ---
-            total_deductions_annual_current = employee_pf_annual + prof_tax_annual; // Tax is EXCLUDED
+            // --- 4. OLD REGIME NET TAKE HOME LOGIC ---
+            // Total deduction is PF deduction + Professional Tax (Tax is excluded)
+            total_deductions_annual_current = employee_pf_annual_deduction + prof_tax_annual;
             total_deductions_monthly_current = Math.round(total_deductions_annual_current / MONTHS_PER_YEAR);
 
-            net_take_home_annual_current = fixed_ctc_annual - total_deductions_annual_current; // Fixed CTC (G) - PF - PT
+            net_take_home_annual_current = fixed_ctc_annual - total_deductions_annual_current; 
             net_take_home_monthly_current = Math.round(net_take_home_annual_current / MONTHS_PER_YEAR);
             
             // --- Update Old Regime UI (Detailed Rows) ---
@@ -964,12 +1012,18 @@
             document.getElementById('specialAllowanceMonthlyOld').textContent = formatCurrencyDisplay(Math.round(special_allowance_annual_old / MONTHS_PER_YEAR));
             document.getElementById('fixedCTCAnnualOld').textContent = formatCurrencyDisplay(fixed_ctc_annual);
             document.getElementById('fixedCTCMonthlyOld').textContent = formatCurrencyDisplay(fixed_ctc_monthly);
-            document.getElementById('employerPFAnnualOld').textContent = formatCurrencyDisplay(employer_pf_annual);
-            document.getElementById('employerPFMonthlyOld').textContent = formatCurrencyDisplay(employer_pf_monthly);
+            
+            // Employer PF (CTC Component)
+            document.getElementById('employerPFAnnualOld').textContent = formatCurrencyDisplay(employer_pf_annual_ctc);
+            document.getElementById('employerPFMonthlyOld').textContent = formatCurrencyDisplay(employer_pf_monthly_ctc);
+            
             document.getElementById('annualCTCOld').textContent = formatCurrencyDisplay(total_ctc_annual);
             document.getElementById('monthlyCTCOld').textContent = formatCurrencyDisplay(Math.round(total_ctc_annual / MONTHS_PER_YEAR));
-            document.getElementById('employeePFAnnualOld').textContent = formatCurrencyDisplay(employee_pf_annual);
-            document.getElementById('employeePFMonthlyOld').textContent = formatCurrencyDisplay(employee_pf_monthly);
+            
+            // Employee PF (Deduction Component)
+            document.getElementById('employeePFAnnualOld').textContent = formatCurrencyDisplay(employee_pf_annual_deduction);
+            document.getElementById('employeePFMonthlyOld').textContent = formatCurrencyDisplay(employee_pf_monthly_deduction);
+            
             document.getElementById('ptAnnualOld').textContent = formatCurrencyDisplay(prof_tax_annual);
             document.getElementById('ptMonthlyOld').textContent = formatCurrencyDisplay(prof_tax_monthly);
             document.getElementById('incomeTaxAnnualOld').textContent = formatCurrencyDisplay(income_tax_annual);
@@ -979,8 +1033,10 @@
             document.getElementById('netTakeHomeAnnualOld').textContent = formatCurrencyDisplay(net_take_home_annual_current);
             document.getElementById('netTakeHomeMonthlyOld').textContent = formatCurrencyDisplay(net_take_home_monthly_current);
         } else {
-             // New Regime (Simple structure) - Uses existing deduction logic including tax
-            total_deductions_annual_current = employee_pf_annual + prof_tax_annual + income_tax_annual;
+             // New Regime (Simple structure) 
+             
+            // 4. NEW REGIME NET TAKE HOME LOGIC: fixed_ctc_annual - (employee_pf_annual + professional_tax_annual + income_tax_annual)
+            total_deductions_annual_current = employee_pf_annual_deduction + prof_tax_annual + income_tax_annual;
             total_deductions_monthly_current = Math.round(total_deductions_annual_current / MONTHS_PER_YEAR);
             net_take_home_annual_current = fixed_ctc_annual - total_deductions_annual_current;
             net_take_home_monthly_current = Math.round(net_take_home_annual_current / MONTHS_PER_YEAR);
@@ -995,12 +1051,18 @@
             document.getElementById('specialAllowanceMonthlyNew').textContent = formatCurrencyDisplay(Math.round(SA_New / MONTHS_PER_YEAR));
             document.getElementById('fixedCTCAnnualNew').textContent = formatCurrencyDisplay(fixed_ctc_annual);
             document.getElementById('fixedCTCMonthlyNew').textContent = formatCurrencyDisplay(fixed_ctc_monthly);
-            document.getElementById('employerPFAnnualNew').textContent = formatCurrencyDisplay(employer_pf_annual);
-            document.getElementById('employerPFMonthlyNew').textContent = formatCurrencyDisplay(employer_pf_monthly);
+            
+            // Employer PF (CTC Component)
+            document.getElementById('employerPFAnnualNew').textContent = formatCurrencyDisplay(employer_pf_annual_ctc);
+            document.getElementById('employerPFMonthlyNew').textContent = formatCurrencyDisplay(employer_pf_monthly_ctc);
+            
             document.getElementById('annualCTCNew').textContent = formatCurrencyDisplay(total_ctc_annual);
-            document.getElementById('monthlyCTCNew').textContent = formatCurrencyDisplay(fixed_ctc_monthly + employer_pf_monthly);
-            document.getElementById('employeePFAnnualNew').textContent = formatCurrencyDisplay(employee_pf_annual);
-            document.getElementById('employeePFMonthlyNew').textContent = formatCurrencyDisplay(employee_pf_monthly);
+            document.getElementById('monthlyCTCNew').textContent = formatCurrencyDisplay(Math.round(total_ctc_annual / MONTHS_PER_YEAR));
+            
+            // Employee PF (Deduction Component)
+            document.getElementById('employeePFAnnualNew').textContent = formatCurrencyDisplay(employee_pf_annual_deduction);
+            document.getElementById('employeePFMonthlyNew').textContent = formatCurrencyDisplay(employee_pf_monthly_deduction);
+            
             document.getElementById('ptAnnualNew').textContent = formatCurrencyDisplay(prof_tax_annual);
             document.getElementById('ptMonthlyNew').textContent = formatCurrencyDisplay(prof_tax_monthly);
             document.getElementById('incomeTaxAnnualNew').textContent = formatCurrencyDisplay(income_tax_annual);
@@ -1011,7 +1073,8 @@
             document.getElementById('netTakeHomeMonthlyNew').textContent = formatCurrencyDisplay(net_take_home_monthly_current);
         }
 
-        // --- SUMMARY STRIP UPDATE ---
+        // --- 5. SUMMARY STRIP UPDATE ---
+        // Pass the fixed total CTC (based on 12% of Basic) and the calculated net monthly
         updateSummaryCard(total_ctc_annual, net_take_home_monthly_current);
         
         renderTable(tax_regime);
@@ -1023,7 +1086,7 @@
         const warningBox = document.getElementById('lowSalaryWarning'); 
         const newBanner = document.getElementById('newExemptionBanner');
         const breakdownDetails = document.getElementById('allowanceBreakdownDetails');
-
+        
         // Hide all conditional elements initially
         if (warningBox) warningBox.classList.add('hidden');
         if (newBanner) newBanner.classList.add('hidden');
@@ -1113,6 +1176,5 @@
     };
 
 </script>
-
 </body>
 </html>
