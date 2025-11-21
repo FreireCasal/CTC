@@ -296,7 +296,7 @@
                 <!-- CLEANED UP LIST FORMAT -->
                 <div class="grid grid-cols-1 md:grid-cols-2 text-sm gap-x-6 gap-y-1">
                     <ul class="list-disc ml-5 space-y-1 text-sm text-yellow-900">
-                        <li class="pl-1">Meal allowance – Max exemption INR 36,000/year.</li>
+                        <!-- REMOVED: "Meal allowance – Max exemption INR 36,000/year." -->
                         <li class="pl-1">Periodicals & journals – Max exemption INR 36,000/year.</li>
                         <li class="pl-1">Leave travel allowance – Max entitlement = 1 month of basic salary.</li>
                         <li class="pl-1">Car running & maintenance – Max exemption INR 28,800/year.</li>
@@ -396,7 +396,7 @@
                         <th>Income Tax (<span id="regimeDisplayNew">New Regime (Slab Tax)</span>)</th>
                         <td id="incomeTaxAnnualNew">—</td>
                         <td id="incomeTaxMonthlyNew">—</td>
-                    </tr>
+                    </div>
                     
                     <!-- E) Subtotal: TOTAL DEDUCTION (Purple) -->
                     <tr class="subtotal-bar subtotal-bar-deduction">
@@ -443,18 +443,20 @@
                         <td id="hraAnnualOld">—</td>
                         <td id="hraMonthlyOld">—</td>
                     </tr>
-                    <tr>
+                    
+                    <!-- REMOVED: Leave Travel Allowance (LTA) and Children Education Allowance (CEA) -->
+                    <tr id="ltaRowOld" style="display: none;">
                         <th>Leave Travel Allowance (LTA) (1 Month Basic)</th>
                         <td id="ltaAnnualOld">—</td>
                         <td id="ltaMonthlyOld">—</td>
                     </tr>
-                    <tr>
+                    <tr id="ceaRowOld" style="display: none;">
                         <th>Children Education Allowance (CEA)</th>
                         <td id="ceaAnnualOld">—</td>
                         <td id="ceaMonthlyOld">—</td>
                     </tr>
 
-                    <!-- A. GROUPED ROW -->
+                    <!-- A. GROUPED ROW (Now includes LTA and CEA in its calculated sum) -->
                     <tr>
                         <th>Flexible Allowances (allocated)</th>
                         <td id="flexibleAnnualOld">—</td>
@@ -957,9 +959,9 @@
             special_allowance_annual_old = Math.round(Math.max(0, special_allowance_annual_old));
 
             // --- A. GROUPING THE OPTIONAL ALLOWANCES ---
-            // Sum the 5 flexible/grouped allowances (excluding LTA and CEA, which remain visible)
+            // 3. Sum the flexible/grouped allowances (NOW INCLUDES LTA and CEA)
             const flexible_allowances_annual_sum = Math.round(
-                telephone_annual_old + sodexo_annual_old + car_repair_annual_old + prof_dev_annual_old + books_annual_old
+                lta_annual_old + cea_annual_old + telephone_annual_old + sodexo_annual_old + car_repair_annual_old + prof_dev_annual_old + books_annual_old
             );
             const flexible_allowances_monthly_sum = Math.round(flexible_allowances_annual_sum / MONTHS_PER_YEAR);
 
@@ -986,6 +988,8 @@
             document.getElementById('basicMonthlyOld').textContent = formatCurrencyDisplay(basic_monthly);
             document.getElementById('hraAnnualOld').textContent = formatCurrencyDisplay(hra_annual);
             document.getElementById('hraMonthlyOld').textContent = formatCurrencyDisplay(hra_monthly);
+            
+            // LTA and CEA rows are now hidden, but values are still updated for the detail block
             document.getElementById('ltaAnnualOld').textContent = formatCurrencyDisplay(lta_annual_old);
             document.getElementById('ltaMonthlyOld').textContent = formatCurrencyDisplay(Math.round(lta_annual_old / MONTHS_PER_YEAR));
             document.getElementById('ceaAnnualOld').textContent = formatCurrencyDisplay(cea_annual_old);
@@ -999,6 +1003,8 @@
             const breakdownList = document.getElementById('flexibleBreakdownList');
             if (breakdownList) {
                 breakdownList.innerHTML = `
+                    <li>Leave Travel Allowance (LTA): ${formatCurrencyDisplay(lta_annual_old)}</li>
+                    <li>Children Education Allowance (CEA): ${formatCurrencyDisplay(cea_annual_old)}</li>
                     <li>Telephone/Internet Allowance: ${formatCurrencyDisplay(telephone_annual_old)}</li>
                     <li>Meal/Sodexo Coupons: ${formatCurrencyDisplay(sodexo_annual_old)}</li>
                     <li>Car Repair & Maintenance: ${formatCurrencyDisplay(car_repair_annual_old)}</li>
